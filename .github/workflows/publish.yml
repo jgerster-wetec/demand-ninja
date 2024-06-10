@@ -1,0 +1,27 @@
+name: Publish to private GitLab Package Registry
+on: [workflow_dispatch]
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+      - name: Setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - name: Install build and twine
+        run: |
+          pip install -U pip setuptools
+          pip install build
+          pip install twine
+      - name: Publish package with twine
+        env:
+          TWINE_PASSWORD: ${{ secrets.GITLAB_DEPLOY_TOKEN_2 }}
+        run: |
+          python -m build
+          TWINE_USERNAME='gitlab+deploy-token-2' \
+          TWINE_REPOSITORY_URL='https://gitlab.ees-warehouse.de/api/v4/projects/77/packages/pypi' \
+          twine upload --non-interactive --verbose dist/*
+      - run: echo "🍏 This job's status is ${{ job.status }}."
